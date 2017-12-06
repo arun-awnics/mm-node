@@ -22,6 +22,7 @@ const user = require('../apis/user/userDetails.controller');
 const group = require('../apis/group/group.controller');
 //const loginUser = require('../apis/loginUser/user.controller');
 const swaggerSpec = require('./swagger.config');
+const userAPI = require('../apis/user/user.controller');
 
 class Config {
     constructor() {
@@ -40,7 +41,7 @@ class Config {
         this.lodash = lodash;
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
-        this.mysql = new MySql();
+        //this.mysql = new MySql();
     }
 
     configureApp() {
@@ -48,7 +49,7 @@ class Config {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: false }));
         this.mongo.connect();
-        this.mysql.getConnection();
+        //this.mysql.getConnection();
         //this.app.set('superSecret', 'secretsareoutdated');
         // Express Session
         /*this.app.use(session({
@@ -82,6 +83,7 @@ class Config {
         this.app.use('/message', message);
         this.app.use('/user', user);
         this.app.use('/group', group);
+        this.app.use('/userAPI', userAPI);
         //this.app.use('/loginUser', loginUser);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
