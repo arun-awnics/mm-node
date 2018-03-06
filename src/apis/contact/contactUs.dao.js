@@ -1,126 +1,83 @@
-/*
-DAO for contact api
-*/
+import contactUsModel from './index';
+import sequelize from '../../util/conn.mysql';
+import log from '../../config/log4js.config';
 
-// Require Mongoose
-var mongoose = require('mongoose');
+/**
+ * DAO for ContactUs api
+ */
+class ContactDao {
+    constructor() {}
 
-// Require model
-var Contact = require('./contactUs.model');
-
-import log4js from 'log4js';
-log4js.configure('./src/config/log4js.json');
-var log = log4js.getLogger("startup");
-
-exports.createContact = (req, res) => {
-
-    // create a new entry
-    var contactUs = new Contact({
-        id: req.body.id,
-        name: req.body.name,
-        picUrl: req.body.picUrl,
-        regNo: req.body.regNo,
-        briefDescription: {
-            speciality: req.body.briefDescription.speciality,
-            experience: req.body.briefDescription.experience,
-            description: req.body.briefDescription.description
-        },
-        contact: {
-            phone: req.body.contact.pone,
-            email: req.body.contact.phone
-        },
-        status: req.body.status,
-        waitingTime: req.body.waitingTime,
-        rating: req.body.rating,
-        videoUrl: req.body.videoUrl,
-        appearUrl: req.body.appearUrl,
-        thumbnailUrl: req.body.thumbnailUrl,
-        lastUpdateTime: req.body.lastUpdateTime,
-        termsAccepted: req.body.termsAccepted
-    });
-    // Call the built-in save method to save to the database
-    contactUs.save((err, contactUs) => {
-        if (err) throw err;
-
-        console.log('Contact created successfully');
-        res.send('Contact saved is: ' + JSON.stringify(contactUs));
-    });
-}
-
-exports.getAllContacts = (req, res) => {
-    // get all the users
-    Contact.find({}, (err, contacts) => {
-        if (err) throw err;
-
-        // object of all the users
-        console.log(contacts);
-        res.send('All contacts: ' + JSON.stringify(contacts));
-    });
-}
-
-exports.getContact = (req, res) => {
-    // get all the users
-    Contact.find({ id: req.params.id }, (err, contactUs) => {
-        if (err) throw err;
-
-        // object of all the users
-        console.log(contactUs);
-        res.send('Contacts named sagar: ' + JSON.stringify(contactUs));
-    });
-}
-
-exports.updateContact = (req, res) => {
-
-    var contactUs = {
-        name: req.body.name,
-        picUrl: req.body.picUrl,
-        regNo: req.body.regNo,
-        briefDescription: {
-            speciality: req.body.briefDescription.speciality,
-            experience: req.body.briefDescription.experience,
-            description: req.body.briefDescription.description
-        },
-        contact: {
-            phone: req.body.contact.pone,
-            email: req.body.contact.phone
-        },
-        status: req.body.status,
-        waitingTime: req.body.waitingTime,
-        rating: req.body.rating,
-        videoUrl: req.body.videoUrl,
-        appearUrl: req.body.appearUrl,
-        thumbnailUrl: req.body.thumbnailUrl,
-        lastUpdateTime: req.body.lastUpdateTime,
-        termsAccepted: req.body.termsAccepted
-    };
-
-    var condition = { id: req.params.id };
-    var options = { multi: true };
-
-    Contact.update(condition, contactUs, options, callback);
-
-    function callback(err, numAffected) {
-        if (err) throw err;
-        console.log('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
-        res.send('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
+    /**
+     * insert method
+     */
+    insert(contact, callback) {
+        sequelize.transaction().then(function(t) {
+            contactUsModel.contact.create(contact, { transaction: t }).then(function(contactInserted) {
+                callback(contactInserted);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
     }
 
-    // Save it
-    /*contactUs.save((err) => {
-        if (err) throw err;
-        console.log('Contact updated successfully');
-        res.send('Updated contact is: ' + JSON.stringify(contactUs));
-    });*/
-    //});
+    /**
+     * read all method
+     */
+    readAll(callback) {
+        contactUsModel.contact.findAll().then((allContact) => {
+            callback(allContact);
+        });
+    }
+
+    /**
+     * read method based on id
+     */
+    readById(id, callback) {
+        contactUsModel.contact.findById(id).then((contact) => {
+            callback(contact);
+        });
+    }
+
+    /**
+     * Update method
+     */
+    update(contact, callback) {
+        sequelize.transaction().then(function(t) {
+            contactUsModel.contact.update(contact, {
+                where: {
+                    id: contact.id
+                }
+            }, { transaction: t }).then(function(contactUpdated) {
+                callback(contactUpdated);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
+    }
+
+    /**
+     * Delete method
+     */
+    delete(id, callback) {
+        sequelize.transaction().then(function(t) {
+            contactUsModel.contact.destroy({
+                where: {
+                    id: id
+                }
+            }).then(function(contactDeleted) {
+                callback(contactDeleted);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
+    }
 }
 
-exports.deleteContact = (req, res) => {
-
-    var condition = { id: req.params.id };
-
-    Contact.remove(condition, (err) => {
-        if (err) throw err;
-        console.log('Contact removed.');
-        res.send('Contact removed!');
-    });
-}
+module.exports = ContactDao;

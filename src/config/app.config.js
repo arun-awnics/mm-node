@@ -1,28 +1,34 @@
+/**
+ * import dependencies
+ */
 import express from 'express';
 import session from 'express-session';
 import flash from 'express-flash';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import passport from 'passport';
-import passportJWT from 'passport-jwt';
-import passportLocal from 'passport-local';
-import jwt from 'jsonwebtoken';
 import lodash from 'lodash';
-import MongoConfig from '../util/conn.mongo';
-import MySql from '../util/conn.mysql';
 import http from 'http';
 import socket from 'socket.io';
 
-var socketConnection = require('../util/conn.socket');
-const log = require('./log4js.config');
-const contact = require('../apis/contact/contactUs.controller');
-const doctor = require('../apis/doctor/doctorDetails.controller');
-const message = require('../apis/message/message.controller');
-const user = require('../apis/user/userDetails.controller');
-const group = require('../apis/group/group.controller');
-//const loginUser = require('../apis/loginUser/user.controller');
-const swaggerSpec = require('./swagger.config');
-const userAPI = require('../apis/user/user.controller');
+/**
+ * import required files
+ */
+import MongoConfig from '../util/conn.mongo';
+import MySql from '../util/conn.mysql';
+import socketService from '../apis/sockets/socket.service';
+import log from './log4js.config';
+import doctor from '../apis/doctor/doctor.controller';
+import fileUpload from '../apis/file-upload/file-upload.controller';
+import message from '../apis/message/message.controller';
+import swaggerSpec from './swagger.config';
+import user from '../apis/user/user.controller';
+import contactUs from '../apis/contact/contactUs.controller';
+import group from '../apis/group/group.controller';
+import orderRequest from '../apis/orderRequest/orderRequest.controller';
+import specialities from '../apis/specialities/specialities.controller';
+import passport from '../auth/passport';
+import authenticate from '../auth/authenticate';
+import role from '../apis/role/role.controller';
 
 class Config {
     constructor() {
@@ -31,35 +37,24 @@ class Config {
         this.flash = flash;
         this.socket = socket;
         this.http = http.Server(this.app);
-        this.io = this.socket(this.http);
+        this.io = this.socket.listen(this.http);
         this.dotenv = dotenv;
-        /*this.passport = passport;
-        this.LocalStrategy = passportLocal.Strategy;
-        this.ExtractJwt = passportJWT.ExtractJwt;
-        this.JwtStrategy = passportJWT.Strategy;
-        this.jwt = jwt;*/
         this.lodash = lodash;
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
-        //this.mysql = new MySql();
     }
 
     configureApp() {
+        // set port to use
         this.app.set('port', (process.env.PORT));
+        // use body parser as middleware
         this.app.use(bodyParser.json());
+        // use urlEncoder as middleware
         this.app.use(bodyParser.urlencoded({ extended: false }));
+        // connect mongo server
         this.mongo.connect();
-        //this.mysql.getConnection();
-        //this.app.set('superSecret', 'secretsareoutdated');
-        // Express Session
-        /*this.app.use(session({
-            secret: 'secret',
-            saveUninitialized: true,
-            resave: true
-        }));*/
-        // Express Flash
-        //this.app.use(this.flash());
-        socketConnection.connectSocket(this.io);
+        // pass io object to establish socket connection
+        socketService.connectSocket(this.io);
     }
 
     configureCORS() {
@@ -78,13 +73,17 @@ class Config {
     }
 
     configureRoutes() {
-        this.app.use('/contact', contact);
+        // configuring routes
+        this.app.use('/auth', authenticate);
         this.app.use('/doctor', doctor);
-        this.app.use('/message', message);
+        this.app.use('/file', fileUpload);
+        this.app.use('/message', passport.authenticate('jwt', { session: false }), message);
         this.app.use('/user', user);
+        this.app.use('/contact', contactUs);
         this.app.use('/group', group);
-        this.app.use('/userAPI', userAPI);
-        //this.app.use('/loginUser', loginUser);
+        this.app.use('/specialities', specialities);
+        this.app.use('/orderRequest', orderRequest);
+        this.app.use('/role', role);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);
@@ -92,12 +91,14 @@ class Config {
     }
 
     listen(port) {
+        // start server at port
         this.http.listen(port, () => {
             log.info(`Server started: http://localhost:${port}/`);
         });
     }
 
     run() {
+        // start application
         this.configureApp();
         this.configureCORS()
         this.configureRoutes();

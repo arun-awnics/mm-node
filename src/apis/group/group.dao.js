@@ -1,77 +1,86 @@
+import groupModel from './index';
+import sequelize from '../../util/conn.mysql';
+import log from '../../config/log4js.config';
+
 /*
-DAO for Group api
+DAO for Doctor api
 */
+class GroupDao {
+    constructor() {}
 
-// Require Mongoose
-var mongoose = require('mongoose');
+    /**
+     * insert method
+     */
+    insert(group, callback) {
+        sequelize.sync({ force: false }).then(() => {
+            sequelize.transaction().then(function(t) {
+                groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
+                    callback(groupInserted);
+                }).then(function() {
+                    t.commit();
+                }).catch(function(error) {
+                    log.error('Error while creating a new group: ', error);
+                    t.rollback();
+                });
+            });
+        });
+    }
 
-// Require model
-var Group = require('./group.model');
+    /**
+     * read all method
+     */
+    readAll(callback) {
+        groupModel.group.findAll().then((allGroup) => {
+            callback(allGroup);
+        });
+    }
 
-exports.createGroup = (req, res) => {
+    /**
+     * read method based on id
+     */
+    readById(id, callback) {
+        groupModel.group.findById(id).then((group) => {
+            callback(group);
+        });
+    }
 
-    //create a new group
-    var group = new Group({
-        id: req.body.id,
-        userIds: req.body.userIds,
-        createdAt: req.body.createdAt
-    });
+    /**
+     * Update method
+     */
+    update(group, callback) {
+        sequelize.transaction().then(function(t) {
+            groupModel.group.update(group, {
+                where: {
+                    id: group.id
+                }
+            }, { transaction: t }).then(function(groupUpdated) {
+                callback(groupUpdated);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
+    }
 
-    // Call the built-in save method to save to the database
-    group.save((err, group) => {
-        if (err) throw err;
-        console.log('Group created successfully');
-        res.send('Group created: ' + JSON.stringify(group));
-    });
-}
-
-exports.getAllGroups = (req, res) => {
-    // get all the groups
-    Group.find({}, (err, group) => {
-        if (err) throw err;
-
-        console.log(group);
-        res.send('All groups: ' + JSON.stringify(group));
-    });
-}
-
-exports.getGroup = (req, res) => {
-    // get a specific the group
-    Group.find({ id: req.params.id }, (err, group) => {
-        if (err) throw err;
-
-        console.log(group);
-        res.send('Group: ' + JSON.stringify(group));
-    });
-}
-
-exports.updateGroup = (req, res) => {
-
-    var group = {
-        id: req.body.id,
-        userIds: req.body.userIds,
-        createdAt: req.body.createdAt
-    };
-
-    var condition = { id: req.params.id };
-    var options = { multi: true };
-
-    Group.update(condition, group, options, callback);
-
-    function callback(err, numAffected) {
-        if (err) throw err;
-        console.log('Group updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
-        res.send('Group updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
+    /**
+     * Delete method
+     */
+    delete(id, callback) {
+        sequelize.transaction().then(function(t) {
+            groupModel.group.destroy({
+                where: {
+                    id: id
+                }
+            }).then(function(groupDeleted) {
+                callback(groupDeleted);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
     }
 }
 
-exports.deleteGroup = (req, res) => {
-
-    var condition = { id: req.params.id };
-
-    Group.remove(condition, (err) => {
-        if (err) throw err;
-        console.log('Group removed.');
-        res.send('Group removed successfully');
-    });
-}
+export default GroupDao;

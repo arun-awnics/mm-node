@@ -1,16 +1,8 @@
-'use strict';
-
-var fs = require('fs');
-var path = require('path');
-var Sequelize = require('sequelize');
+import sequelize from '../../util/conn.mysql';
+import fs from 'fs';
+import path from 'path';
 var basename = path.basename(__filename);
 var db = {};
-var sequelize = new Sequelize('test', 'arun', 'password', {
-    host: 'localhost',
-    dialect: 'mysql',
-    operatorsAliases: false,
-    logging: false
-});
 
 fs
     .readdirSync(__dirname)
@@ -21,11 +13,5 @@ fs
         var model = sequelize['import'](path.join(__dirname, file));
         db[model.name] = model;
     });
-
-db.sequelize = sequelize;
-
-db.sequelize.authenticate()
-    .then(() => console.log('connection successfull for sequelize'))
-    .catch(e => console.error('error in connection: ', e));
 
 module.exports = db;

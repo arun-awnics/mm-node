@@ -1,12 +1,16 @@
-var express = require('express');
-var router = express.Router();
+import express from 'express';
+import UserDao from './user.dao';
+import UserService from './user.service';
+import log from '../../config/log4js.config';
+//import activate from './activate';
 
-var UserDao = require('./user.dao');
+var router = express.Router();
 var userDao = new UserDao();
+var userService = new UserService();
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   User:
  *     properties:
  *       id:
@@ -16,7 +20,7 @@ var userDao = new UserDao();
  *       email:
  *         type: string
  *       phoneNo:
- *         type: string
+ *         type: integer
  *       picUrl:
  *         type: string
  *       description:
@@ -27,14 +31,24 @@ var userDao = new UserDao();
  *         type: integer
  *       rating:
  *         type: integer
+ *       token:
+ *         type: string
+ *       activate:
+ *         type: integer
+ *       privilege:
+ *         type: string
+ *       createdBy:
+ *         type: string
+ *       updatedBy:
+ *         type: string
  */
 /**
  * @swagger
- * /controllers/postUser:
+ * /user/controllers/createUser:
  *   post:
  *     tags:
  *       - Users
- *     description: Creates a new user
+ *     description: Creates a new user in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -46,78 +60,98 @@ var userDao = new UserDao();
  *           $ref: '#/definitions/User'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in MySql db
  */
-router.post('/controllers/createdUser', userDao.insert);
+router.post('/controllers/createUser', function(req, res) {
+    var user = req.body;
+    userService.register(user, (result) => {
+        res.send(result);
+    });
+});
 
 /**
  * @swagger
- * /controllers/getUser:
+ * /user/controllers/getUser:
  *   get:
  *     tags:
  *       - Users
- *     description: Returns all user
+ *     description: Returns all user from MySql db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of user
+ *         description: An array of user from MySql db
  *         schema:
  *           $ref: '#/definitions/User'
  */
-router.get('/controllers/getUser', userDao.readAll);
+router.get('/controllers/getUsers', function(req, res) {
+    userService.getAll((result) => {
+        res.send(result);
+    });
+});
 
 /**
  * @swagger
- * /controllers/getUserById:
+ * /user/controllers/getUserById/{id}:
  *   get:
  *     tags:
  *       - Users
- *     description: Returns user by id
+ *     description: Returns user by id from MySql db
  *     produces:
  *       - application/json
- *     responses:
- *       200:
- *         description: An user
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for user to return
+ *         required: true
+ *         type: integer
  *         schema:
  *           $ref: '#/definitions/User'
+ *     responses:
+ *       200:
+ *         description: An user return from MySql db
  */
-router.get('/controllers/getUserById/:id', userDao.readById);
+router.get('/controllers/getUserById/:id', function(req, res) {
+    var id = req.params.id;
+    userService.getById(id, (result) => {
+        res.send(result);
+    });
+});
 
 /**
  * @swagger
- * /controllers/putUser/{id}:
+ * /user/controllers/putUser:
  *   put:
  *     tags:
  *       - Users
- *     description: Updates a single user
+ *     description: Updates a single user in MySql db
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id
- *         description: User's id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: user
- *         description: user object
- *         in: body
+ *       - in: body
+ *         name: body
+ *         description: User data that needs to be update
  *         required: true
  *         schema:
  *           $ref: '#/definitions/User'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in MySql db
  */
-router.put('/controllers/putUser/:id', userDao.update);
+router.put('/controllers/putUser', function(req, res) {
+    var user = req.body;
+    userService.updateRegisteredUser(user, (result) => {
+        res.send(result);
+    });
+});
 
 /**
  * @swagger
- * /controllers/deleteUser/{id}:
+ * /user/controllers/deleteUser/{id}:
  *   delete:
  *     tags:
  *       - Users
- *     description: Deletes a user
+ *     description: Deletes a user from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -128,8 +162,35 @@ router.put('/controllers/putUser/:id', userDao.update);
  *         type: integer
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/deleteUser/:id', userDao.delete);
+router.delete('/controllers/deleteUser/:id', function(req, res) {
+    var id = req.params.id;
+    userService.deleteRegisteredUser(id, (result) => {
+        res.send('Number of user deleted: ' + result);
+    });
+});
+
+/**
+ * updateActivate 
+ */
+router.get('/controllers/updateActivate/:token', function(req, res) {
+    userService.activateUser(req.params.token, (result) => {
+        res.sendFile('./activate.html', { root: __dirname })
+    });
+});
+
+/**
+ * find user by name
+ */
+router.get('/controllers/findUserByEmail/:email', (req, res) => {
+    userService.findUserByEmail(req.params.email, (result) => {
+        if (result) {
+            res.send(result);
+        } else {
+            res.status(401).send({ success: false, message: 'authentication failed' });
+        }
+    });
+});
 
 module.exports = router;

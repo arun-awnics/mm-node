@@ -1,20 +1,33 @@
-/**
- * Group api models
- */
-
-//Require Mongoose
-var mongoose = require('mongoose');
-
-//Define a schema
-var Schema = mongoose.Schema;
-
-var GroupSchema = new Schema({
-    id: { type: Date, default: Date.now },
-    userIds: [String],
-    createdAt: Date
-});
-
-// Compile model from schema
-var Group = mongoose.model('Group', GroupSchema);
-
-module.exports = Group;
+module.exports = (sequelize, DataTypes) => {
+    var Group = sequelize.define('group', {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        name: {
+            type: DataTypes.STRING
+        },
+        url: {
+            type: DataTypes.STRING
+        },
+        userId: {
+            type: DataTypes.INTEGER
+        },
+        description: {
+            type: DataTypes.STRING
+        },
+        picture: {
+            type: DataTypes.STRING
+        },
+        createdBy: {
+            type: DataTypes.STRING
+        },
+        updatedBy: {
+            type: DataTypes.STRING
+        }
+    }, {
+        freezeTableName: true
+    });
+    return Group;
+};

@@ -1,12 +1,8 @@
-/**
- * controllers for contact api
- */
+import express from 'express';
+import ContactService from './contactUs.service';
 
-var express = require('express');
 var router = express.Router();
-
-var contact = require('./contactUs.dao');
-//var email = require('./email.service');
+var contactService = new ContactService();
 
 /**
  * @swagger
@@ -21,22 +17,16 @@ var contact = require('./contactUs.dao');
  *         type: string
  *       regNo:
  *         type: string
- *       briefDescription:
- *         type: object
- *         properties:
- *           speciality:
- *             type: string
- *           experience:
- *             type: integer
- *           description:
- *             type: string
- *       contact:
- *         type: object
- *         properties:
- *           email:
- *             type: string
- *           phoneno:
- *             type: string
+ *       speciality:
+ *         type: string
+ *       experience:
+ *         type: integer
+ *       description:
+ *         type: string
+ *       email:
+ *         type: string
+ *       phoneNo:
+ *         type: integer
  *       status:
  *         type: string
  *       waitingTime:
@@ -49,103 +39,138 @@ var contact = require('./contactUs.dao');
  *         type: string
  *       thumbnailUrl:
  *         type: string
- *       lastUpdatedTime:
- *         type: string
  *       termsAccepted:
- *         type: string
+ *         type: true
  */
 /**
  * @swagger
- * /contact/controllers/getcontactUs:
- *   get:
- *     tags:
- *       - contactUs
- *     description: Returns all contact
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: An array of contact
- *         schema:
- *           $ref: '#/definitions/Contact'
- */
-router.get('/controllers/getContactUs', contact.getAllContacts);
-
-/**
- * @swagger
- * /contact/controllers/postContactUs:
+ * /contact/controllers/createContact:
  *   post:
  *     tags:
- *       - contactUs
- *     description: Creates a new contact
+ *       - Contact
+ *     description: Creates a new contact in MySql db
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: contactUs
- *         description: contactUs object
+ *       - name: contact
+ *         description: contact object
  *         in: body
  *         required: true
  *         schema:
  *           $ref: '#/definitions/Contact'
  *     responses:
  *       200:
- *         description: Successfully created
- * 
- * 
- * 
- * 
+ *         description: Successfully created in MySql db
  */
-router.post('/controllers/postContactUs', contact.createContact);
+router.post('/controllers/createContact', function(req, res) {
+    var contact = req.body;
+    contactService.create(contact, (result) => {
+        res.send(result);
+    });
+});
 
 /**
  * @swagger
- * /contact/controllers/putContactUs/{id}:
+ * /contact/controllers/getContacts:
+ *   get:
+ *     tags:
+ *       - Contact
+ *     description: Returns all contact from MySql db
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: An array of contact from MySql db.
+ *         schema:
+ *           $ref: '#/definitions/Contact'
+ */
+router.get('/controllers/getContacts', function(req, res) {
+    contactService.getAll((result) => {
+        res.send(result);
+    });
+});
+
+/**
+ * @swagger
+ * /contact/controllers/getContactById/{id}:
+ *   get:
+ *     tags:
+ *       - Contact
+ *     description: Returns contact by id from MySql db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for contact to return
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/Contact'
+ *     responses:
+ *       200:
+ *         description: An contact return from MySql db
+ *         schema:
+ *           $ref: '#/definitions/Contact'
+ */
+router.get('/controllers/getContactById/:id', function(req, res) {
+    var id = req.params.id;
+    contactService.getById(id, (result) => {
+        res.send(result);
+    });
+});
+
+/**
+ * @swagger
+ * /contact/controllers/putContact:
  *   put:
  *     tags:
- *       - contactUs
+ *       - Contact
  *     description: Updates a single contact
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id
- *         description: user's id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: contactUs
- *         description: contactUs object
- *         in: body
+ *       - in: body
+ *         name: body
+ *         description: Contact data that needs to be update
  *         required: true
  *         schema:
  *           $ref: '#/definitions/Contact'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated data in MySql
  */
-router.put('/controllers/putContactUs/:id', contact.updateContact);
+router.put('/controllers/putContact', function(req, res) {
+    var contact = req.body;
+    contactService.update(contact, (result) => {
+        res.send(result);
+    });
+});
 
 /**
  * @swagger
- * /contact/controllers/removeContactUs/{id}:
+ * /contact/controllers/deleteContact/{id}:
  *   delete:
  *     tags:
- *       - contactUs
- *     description: Deletes a single contact
+ *       - Contact
+ *     description: Deletes a single contact from MySql
  *     produces:
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: user's id
+ *         description: Contact's id
  *         in: path
  *         required: true
- *         type: integer
+ *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/removeContactUs/:id', contact.deleteContact);
-//contactRouter.post('controllers/sendMail', email.post);
-
-router.get('/controllers/getContactById/:id', contact.getContact);
+router.delete('/controllers/deleteContact/:id', function(req, res) {
+    var id = req.params.id;
+    contactService.delete(id, (result) => {
+        res.send('Number of contact deleted: ' + result);
+    });
+});
 
 module.exports = router;

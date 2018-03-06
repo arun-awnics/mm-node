@@ -1,101 +1,67 @@
 /*
-DAO for ContactUs api
+DAO for messages api
 */
 
-// Require Mongoose
-var mongoose = require('mongoose');
+import Message from './message.model';
+import log from '../../config/log4js.config';
 
-// Require model
-var Message = require('./message.model');
+exports.create = (message, callback) => {
 
-exports.createMessage = (req, res) => {
-
-    //create a new entry
-    var message = new Message({
-        id: req.body.id,
-        receiverId: req.body.receiverId,
-        senderId: req.body.senderId,
-        picUrl: req.body.picUrl,
-        text: req.body.text,
-        type: req.body.type,
-        status: req.body.status,
-        contentType: req.body.contentType,
-        contentData: {
-            data: req.body.contentData.data
-        },
-        responseData: {
-            data: req.body.responseData.data
-        },
-        lastUpdateTime: req.body.lastUpdateTime
-    });
-    // Call the built-in save method to save to the database
+    //create a new message
     message.save((err, message) => {
-        if (err) throw err;
-        console.log('Message created successfully');
-        res.send('Message created: ' + JSON.stringify(message));
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
+        callback(message);
     });
 }
 
-exports.getAllMessages = (req, res) => {
-    // get all the users
-    Message.find({}, (err, message) => {
-        if (err) throw err;
-
-        // object of all the users
-        console.log(message);
-        res.send('All messages: ' + JSON.stringify(message));
+exports.getAll = (callback) => {
+    // get all the messages
+    Message.find({}, (err, messages) => {
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
+        callback(messages);
     });
 }
 
-exports.getMessage = (req, res) => {
-    // get a specific the user
-    Message.find({ id: req.params.id }, (err, message) => {
-        if (err) throw err;
-
-        // object of all the users
-        console.log(message);
-        res.send('Message with name Sagar: ' + JSON.stringify(message));
+exports.getById = (id, callback) => {
+    // get a specific the message
+    Message.find({ id: id }, (err, message) => {
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
+        callback(message);
     });
 }
 
-exports.updateMessage = (req, res) => {
+exports.update = (message, callback) => {
+    var condition = { $and: [{ 'senderId': message.senderId }, { 'receiverId': message.receiverId }, { 'createdTime': message.createdTime }] };
+    var options = { new: true }; //multi: true, upsert: true
 
-    var message = {
-        receiverId: req.body.receiverId,
-        senderId: req.body.senderId,
-        picUrl: req.body.picUrl,
-        text: req.body.text,
-        type: req.body.type,
-        status: req.body.status,
-        contentType: req.body.contentType,
-        contentData: {
-            data: req.body.contentData.data
-        },
-        responseData: {
-            data: req.body.responseData.data
-        },
-        lastUpdateTime: req.body.lastUpdateTime
-    };
-
-    var condition = { id: req.params.id };
-    var options = { multi: true };
-
-    Message.update(condition, message, options, callback);
-
-    function callback(err, numAffected) {
-        if (err) throw err;
-        console.log('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
-        res.send('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
-    }
+    Message.findOneAndUpdate(condition, {
+        $set: {
+            "text": message.text,
+            "type": "text",
+            "contentType": "text"
+        }
+    }, options, (err, message) => {
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
+        callback(message);
+    });
 }
 
-exports.deleteMessage = (req, res) => {
+exports.delete = (id, callback) => {
 
-    var condition = { id: req.params.id };
+    var condition = { id: id };
 
-    Message.remove(condition, (err) => {
-        if (err) throw err;
-        console.log('Message removed.');
-        res.send('Message removed successfully');
+    Message.remove(condition, (err, message) => {
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
+        callback(message);
     });
 }

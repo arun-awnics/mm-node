@@ -15,7 +15,7 @@ const swaggerDefinition = {
 
 const options = {
     swaggerDefinition: swaggerDefinition,
-    apis: ['dist/apis/contact/*.js', 'dist/apis/doctor/*.js', 'dist/apis/message/*.js', 'dist/apis/user/*.js']
+    apis: ['dist/apis/contact/*.js', 'dist/apis/doctor/*.js', 'dist/apis/message/*.js', 'dist/apis/user/*.js', 'dist/apis/group/*.js', 'dist/apis/orderRequest/*.js', 'dist/apis/specialities/*.js']
 };
 
 const swaggerSpec = swaggerJSDoc(options);

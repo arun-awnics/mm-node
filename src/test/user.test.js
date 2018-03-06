@@ -1,122 +1,183 @@
-import * as Config from '../config/app.config';
-//var Config = require('../config/app.config');
-//const userAPI = require('../apis/user/user.controller');
-//var express = require('express');
+import log from '../config/log4js.config';
+import UserService from '../apis/user/user.service';
 var expect = require('expect.js');
 var chai = require('chai');
-let chaiHttp = require('chai-http');
-var bodyParser = require('body-parser');
-var UserDao = require('../apis/user/user.dao');
-const log = require('../config/log4js.config');
-var db = require('../apis/user');
-var should = chai.should();
-var user = {
-    name: 'nisha',
-    email: 'nisha@gmail.com',
-    phoneNo: 8978567438,
-    picUrl: 'nisha',
-    description: 'SI',
-    status: 'active',
-    waitingTime: 10,
-    rating: 7
-};
-//var app = express();
-this.app = Config.app;
+var supertest = require("supertest");
+let should = chai.should();
+var server = supertest.agent("http://localhost:3000/userAPI");
+var Sequelize = require('sequelize');
 
-//var port = 4000;
-//app.use('/userAPI', userAPI);
-
-//app.listen(port);
-chai.use(chaiHttp);
+var userService = new UserService();
 
 describe('userDao', function() {
-    before(function() {
-        db = require('../apis/user');
-        return db.sequelize.sync({ force: true });
-    });
-
-    beforeEach(function() {
-        this.User = db.User;
-    });
-
-    afterEach(function() {
-        db.User.drop();
-    });
-    describe('create a user', function() {
-        it('user created', (done) => {
+    //this.timeout(3000);
+    describe('#insert()', function() {
+        //this.timeout(3000);
+        it('creates a user', function(done) {
+            //this.timeout(1700);
+            this.timeout(3000);
             var user = {
-                name: 'nisha',
-                email: 'nisha@gmail.com',
+                id: null,
+                name: 'abc',
+                email: 'xyz@gmail.com',
                 phoneNo: 8978567438,
-                picUrl: 'nisha',
+                picUrl: 'nilu',
                 description: 'SI',
                 status: 'active',
                 waitingTime: 10,
                 rating: 7
             };
-            chai.request(app)
-                .post('/controllers/createdUser')
-                .send(user)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    done();
-                });
+            return userService.register(user, (res) => {
+                //log.info('value after insert: ' + JSON.stringify(res));
+                //expect(res.id).to.be.greaterThan(0);
+                //expect(result.name).to.equal(user.name);
+                //userService.delete(res.id, (res) => {});
+            }).then((result) => {
+                //expect(result.id).to.be.greaterThan(0);
+                log.info('user value after insert: ' + JSON.stringify(result));
+                //userService.delete(result.id, (result) => {});
+            });
+            //done();
+            setTimeout(done, 3000);
         });
     });
 
-    /*describe('Create /user', () => {
-        it('should be json', () => {
-            return chai.request(app).get('/users')
-                .then(res => {
-                    expect(res.type).to.eql('application/json')
-                })
-        })
-    })
-
-    describe('#create()', function() {
-        it('Returns the user model', function() {
-            expect(db.User).to.be.ok();
-        });
-
-        xit('creates a user', function() {
-            return db.sequelize.transaction({ autocommit: false }).then(function(t) {
-                db.User.sync({ force: false }).then(function() {
-                    return db.User.create(user, { transaction: t }).then(function(createdUser) {
-                        log.info('after user created');
-                        expect(createdUser.id).to.be.greaterThan(0);
-                    }).then(function(result) {
-                        log.info('result is:' + result);
-                        return t.commit();
-                    }).catch(function(error) {
-                        log.error('error' + error);
-                        return t.rollback();
-                    });
-                });
+    describe('#update()', function() {
+        this.timeout(3000);
+        it('user updated', function(done) {
+            //this.timeout(1800);
+            this.timeout(3000);
+            var user = {
+                id: 24,
+                name: 'nilu',
+                email: 'nilu@gmail.com',
+                phoneNo: 8978567438,
+                picUrl: 'nilu',
+                description: 'SI',
+                status: 'active',
+                waitingTime: 10,
+                rating: 7
+            };
+            return userService.updateRegisteredUser(user, (result) => {}).then((res) => {
+                //userService.deleteRegisteredUser(user.id, (result) => {});
+                //done();
             });
+            setTimeout(done, 3000);
         });
+    });
 
-        xit('inserting the user using insert()', function() {
-            return db.sequelize.transaction({ autocommit: false }).then(function(t) {
-                log.info('after transaction');
-                var userDao = new UserDao();
-                userDao.insert(user, { transaction: t }).then(function(createdUser) {
-                    log.info('after user created');
-                    expect(createdUser.id).to.be.greaterThan(0);
-                }).then(function(result) {
-                    log.info('committed');
-                    return t.commit();
-                }).catch(function(err) {
-                    return t.rollback();
-                });
+    describe('#readAll()', function() {
+        this.timeout(3000);
+        it('Get all users', function(done) {
+            //this.timeout(1900);
+            this.timeout(3000);
+            return userService.getAll((result) => {
+                //log.info('all data: ' + JSON.stringify(result));
+            }).then((result) => {
+                //done();
             });
+            setTimeout(done, 3000);
         });
+    });
 
-        it('creates a user', function() {
-            var userDao = new UserDao();
-            return userDao.insert(user).then(function(createdUser) {
-                log.info('after user created');
-                expect(createdUser.id).to.be.greaterThan(0);
+    describe('#readById()', function() {
+        this.timeout(3000);
+        it('Get user by id', function(done) {
+            //this.timeout(2000);
+            this.timeout(3000);
+            return userService.getById(22, () => {}).then((res) => {
+                log.info('get by id data:' + JSON.stringify(res));
+                //done();
             });
+            setTimeout(done, 3000);
         });
-    });*/
+    });
+
+    describe('#delete()', function() {
+        this.timeout(3000);
+        it('User deleted', function(done) {
+            //this.timeout(2100);
+            this.timeout(3000);
+            return userService.deleteRegisteredUser(8, () => {}).then((res) => {
+                log.info('deleted user');
+                //done();
+            });
+            setTimeout(done, 3000);
+        });
+    });
 });
+
+
+/*import log from '../config/log4js.config';
+import UserService from '../apis/user/user.service';
+var expect = require('expect.js');
+var chai = require('chai');
+var supertest = require("supertest");
+let should = chai.should();
+var server = supertest.agent("http://localhost:3000/userAPI");
+var Sequelize = require('sequelize');
+
+var userService = new UserService();
+
+describe('userDao', function() {
+    describe('#insert()', function() {
+        it('creates a user', function() {
+            var user = {
+                name: 'xyz',
+                email: 'xyz@gmail.com',
+                phoneNo: 8978567438,
+                picUrl: 'nilu',
+                description: 'SI',
+                status: 'active',
+                waitingTime: 10,
+                rating: 7
+            };
+            userService.register(user, (result) => {
+                log.info('User data after insert: ' + JSON.stringify(result));
+                expect(result.id).to.be.greaterThan(0);
+                expect(result.name).to.equal(user.name);
+                //userService.deleteRegisteredUser(result.id, (result) => {});
+            });
+        });
+    });
+
+    describe('#update()', function() {
+        it('user updated', function() {
+            var user = {
+                id: 1,
+                name: 'nisha',
+                email: 'xyz@gmail.com',
+                phoneNo: 8978567438
+            };
+            userService.updateRegisteredUser(user, (result) => {
+                //userService.deleteRegisteredUser(user.id, (result) => {});
+            });
+        });
+    });
+
+    describe('#readAll()', function() {
+        it('Get all users', function() {
+            userService.getAll((result) => {});
+        });
+    });
+
+    describe('#readById()', function() {
+        it('Get user by id', function() {
+            var user = {
+                id: 1
+            };
+            userService.getById(user.id, (result) => {
+                log.info('User data for ' + user.id + ' is ' + JSON.stringify(result));
+            });
+        });
+    });
+
+    describe('#delete()', function() {
+        it('User deleted', function() {
+            var user = {
+                id: 3
+            };
+            userService.deleteRegisteredUser(user.id, (result) => {});
+        });
+    });
+});*/

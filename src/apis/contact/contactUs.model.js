@@ -1,38 +1,57 @@
-/**
- * contact api models
- */
-
-//Require Mongoose
-var mongoose = require('mongoose');
-
-//Define a schema
-var Schema = mongoose.Schema;
-
-var ContactSchema = new Schema({
-    id: { type: Date, default: Date.now },
-    name: String,
-    picUrl: String,
-    regNo: String,
-    briefDescription: {
-        speciality: String,
-        experience: Number,
-        description: String
-    },
-    contact: {
-        phone: String,
-        email: String
-    },
-    status: String,
-    waitingTime: Number,
-    rating: Number,
-    videoUrl: String,
-    appearUrl: String,
-    thumbnailUrl: String,
-    lastUpdateTime: Date,
-    termsAccepted: Boolean
-});
-
-// Compile model from schema
-var Contact = mongoose.model('Contact', ContactSchema);
-
-module.exports = Contact;
+module.exports = (sequelize, DataTypes) => {
+    var Contact = sequelize.define('contact', {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        name: {
+            type: DataTypes.STRING
+        },
+        picUrl: {
+            type: DataTypes.STRING
+        },
+        regNo: {
+            type: DataTypes.STRING
+        },
+        speciality: {
+            type: DataTypes.STRING
+        },
+        experience: {
+            type: DataTypes.NUMERIC
+        },
+        description: {
+            type: DataTypes.STRING
+        },
+        email: {
+            type: DataTypes.STRING
+        },
+        phoneNo: {
+            type: DataTypes.STRING
+        },
+        status: {
+            type: DataTypes.STRING
+        },
+        waitingTime: {
+            type: DataTypes.NUMERIC
+        },
+        rating: {
+            type: DataTypes.NUMERIC
+        },
+        videoUrl: {
+            type: DataTypes.STRING
+        },
+        appearUrl: {
+            type: DataTypes.STRING
+        },
+        thumbnailUrl: {
+            type: DataTypes.STRING
+        },
+        termsAccepted: {
+            type: DataTypes.BOOLEAN
+        }
+    }, {
+        freezeTableName: true
+    });
+    return Contact;
+};
