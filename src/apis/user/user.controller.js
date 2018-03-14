@@ -62,7 +62,7 @@ var userService = new UserService();
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/controllers/createUser', function(req, res) {
+router.post('/users', function(req, res) {
     var user = req.body;
     userService.register(user, (result) => {
         res.send(result);
@@ -84,7 +84,7 @@ router.post('/controllers/createUser', function(req, res) {
  *         schema:
  *           $ref: '#/definitions/User'
  */
-router.get('/controllers/getUsers', function(req, res) {
+router.get('/users', function(req, res) {
     userService.getAll((result) => {
         res.send(result);
     });
@@ -111,7 +111,7 @@ router.get('/controllers/getUsers', function(req, res) {
  *       200:
  *         description: An user return from MySql db
  */
-router.get('/controllers/getUserById/:id', function(req, res) {
+router.get('/users/:id', function(req, res) {
     var id = req.params.id;
     userService.getById(id, (result) => {
         res.send(result);
@@ -138,7 +138,7 @@ router.get('/controllers/getUserById/:id', function(req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/controllers/putUser', function(req, res) {
+router.put('/users', function(req, res) {
     var user = req.body;
     userService.updateRegisteredUser(user, (result) => {
         res.send(result);
@@ -164,7 +164,7 @@ router.put('/controllers/putUser', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/deleteUser/:id', function(req, res) {
+router.delete('/users/:id', function(req, res) {
     var id = req.params.id;
     userService.deleteRegisteredUser(id, (result) => {
         res.send('Number of user deleted: ' + result);
@@ -174,7 +174,7 @@ router.delete('/controllers/deleteUser/:id', function(req, res) {
 /**
  * updateActivate 
  */
-router.get('/controllers/updateActivate/:token', function(req, res) {
+router.get('/users/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
         res.sendFile('./activate.html', { root: __dirname })
     });
@@ -183,7 +183,7 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
 /**
  * find user by name
  */
-router.get('/controllers/findUserByEmail/:email', (req, res) => {
+router.get('/users/:email', (req, res) => {
     userService.findUserByEmail(req.params.email, (result) => {
         if (result) {
             res.send(result);

@@ -1,6 +1,7 @@
 import rtg from 'random-token-generator';
 import nodemailer from 'nodemailer';
 import Sequelize from 'sequelize';
+import bcrypt from 'bcrypt';
 var Promise = require('bluebird');
 
 import log from '../../config/log4js.config';
@@ -54,6 +55,9 @@ class UserService {
                 user.token = key; //assign generated key to user
             }
         });
+        bcrypt.hash(user.password, 10, (err, hash) => {
+            user.password = hash;
+        });
         return userDao.insert(user, (userInserted) => {
             callback(userInserted);
             RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
@@ -87,11 +91,11 @@ class UserService {
                         .then((groupUserMaps) => {
                             var uId;
                             for (var i = 0; i < groupUserMaps.length; i++) {
-                                if (groupUserMaps[i].role == 'patient')
-                                    continue;
-                                else {
+                                if (groupUserMaps[i].role == 'bot' | groupUserMaps[i].role == 'BOT') {
                                     uId = groupUserMaps[i].id;
                                     break;
+                                } else {
+                                    continue;
                                 }
                             }
                             var groupUserMapBot = {
@@ -195,7 +199,7 @@ class UserService {
     /**
      * Find user by email for the login component
      */
-    findUserByEmail(email, callback) {
+    findUserByEmail(email, password, callback) {
         userModel.user.findOne({
             where: {
                 email: email

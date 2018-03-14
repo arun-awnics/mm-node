@@ -48,7 +48,7 @@ var groupService = new GroupService();
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/controllers/createGroup', function(req, res) {
+router.post('/groups', function(req, res) {
     var group = req.body;
     groupService.create(group, (result) => {
         res.send(result);
@@ -70,7 +70,7 @@ router.post('/controllers/createGroup', function(req, res) {
  *         schema:
  *           $ref: '#/definitions/Group'
  */
-router.get('/controllers/getGroups', function(req, res) {
+router.get('/groups', function(req, res) {
     groupService.getAll((result) => {
         res.send(result);
     });
@@ -97,7 +97,7 @@ router.get('/controllers/getGroups', function(req, res) {
  *       200:
  *         description: An Group return from MySql
  */
-router.get('/controllers/getGroupById/:id', function(req, res) {
+router.get('/groups/:id', function(req, res) {
     var id = req.params.id;
     groupService.getById(id, (result) => {
         res.send(result);
@@ -124,7 +124,7 @@ router.get('/controllers/getGroupById/:id', function(req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/controllers/putGroup', function(req, res) {
+router.put('/groups', function(req, res) {
     var group = req.body;
     groupService.update(group, (result) => {
         res.send(result);
@@ -150,7 +150,7 @@ router.put('/controllers/putGroup', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/deleteGroup/:id', function(req, res) {
+router.delete('/groups/:id', function(req, res) {
     var id = req.params.id;
     groupService.delete(id, (result) => {
         res.send('Number of groups deleted: ' + result);
@@ -193,7 +193,7 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/controllers/createGroupUserMap', function(req, res) {
+router.post('/groupUserMaps', function(req, res) {
     var groupUser = req.body;
     groupService.createGroupUserMap(groupUser, (result) => {
         res.send(result);
@@ -215,7 +215,7 @@ router.post('/controllers/createGroupUserMap', function(req, res) {
  *         schema:
  *           $ref: '#/definitions/GroupUserMap'
  */
-router.get('/controllers/getGroupUserMaps', function(req, res) {
+router.get('/groupUserMaps', function(req, res) {
     groupService.getAllGroupUserMaps((result) => {
         res.send(result);
     });
@@ -242,7 +242,7 @@ router.get('/controllers/getGroupUserMaps', function(req, res) {
  *       200:
  *         description: An GroupUserMap return from MySql db
  */
-router.get('/controllers/getGroupUserMapById/:id', function(req, res) {
+router.get('/groupUserMaps/:id', function(req, res) {
     var id = req.params.id;
     groupService.getGroupUserMapById(id, (result) => {
         res.send(result);
@@ -269,7 +269,7 @@ router.get('/controllers/getGroupUserMapById/:id', function(req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/controllers/putGroupUserMap', function(req, res) {
+router.put('/groupUserMaps', function(req, res) {
     var groupUser = req.body;
     groupService.updateGroupUserMap(groupUser, (result) => {
         res.send(result);
@@ -295,7 +295,7 @@ router.put('/controllers/putGroupUserMap', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
+router.delete('/groupUserMaps/:id', function(req, res) {
     var id = req.params.id;
     groupService.deleteGroupUserMap(id, (result) => {
         res.send('Number of groupUserMap deleted: ' + result);
@@ -305,7 +305,7 @@ router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
 /**
  * for fetching all the groups for given user
  */
-router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
+router.get('/groups/users/:userId', (req, res) => {
     groupService.getAllGroupsByUserId((req.params.userId))
         .then(result => res.send(result));
 });
@@ -313,7 +313,7 @@ router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
 /**
  * creating new group by doctor/bot
  */
-router.post('/controllers/createGroupAuto/:receiverId', function(req, res) {
+router.post('/groups/:receiverId', function(req, res) {
     var group = req.body;
     var receiverId = req.params.receiverId;
     groupService.createGroupAuto(group, receiverId, (result) => {
@@ -324,7 +324,7 @@ router.post('/controllers/createGroupAuto/:receiverId', function(req, res) {
 /**
  * creating new group manually by doctor/bot
  */
-router.post('/controllers/createGroupManual/:receiverId/:doctorId', function(req, res) {
+router.post('/groups/:receiverId/:doctorId', function(req, res) {
     var group = req.body;
     var receiverId = req.params.receiverId;
     var doctorId = req.params.doctorId;

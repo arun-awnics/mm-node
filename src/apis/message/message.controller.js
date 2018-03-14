@@ -60,7 +60,7 @@ var router = express.Router();
  *         schema:
  *           $ref: '#/definitions/Message'
  */
-router.get('/controllers/getMessage', (req, res) => {
+router.get('/messages', (req, res) => {
     //var message = new Message();
     messageService.readAll((results) => {
         res.send(results);
@@ -91,7 +91,7 @@ router.get('/controllers/getMessage', (req, res) => {
  * 
  * 
  */
-router.post('/controllers/sendMessage', (req, res) => {
+router.post('/messages', (req, res) => {
     // call service and pass the control from service to DAO
     messageService.sendMessage(req.body, (result) => {
         res.send(result);
@@ -118,7 +118,7 @@ router.post('/controllers/sendMessage', (req, res) => {
  *       200:
  *         description: Successfully updated in Mongo db
  */
-router.put('/controllers/putMessage', (req, res) => {
+router.put('/messages', (req, res) => {
     messageService.update(req.body, (result) => { log.info('Message updated') });
     res.send('Message updated successfully');
 });
@@ -142,7 +142,7 @@ router.put('/controllers/putMessage', (req, res) => {
  *       200:
  *         description: Successfully deleted from Mongo db
  */
-router.delete('/controllers/removeMessage/:id', (req, res) => {
+router.delete('/messages/:id', (req, res) => {
     messageService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Message deleted');
 });
@@ -168,7 +168,7 @@ router.delete('/controllers/removeMessage/:id', (req, res) => {
  *       200:
  *         description: An message return from Mongo db
  */
-router.get('/controllers/getMessageById/:id', (req, res) => {
+router.get('/messages/:id', (req, res) => {
     messageService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Read message by ID successful');
 });
@@ -176,7 +176,7 @@ router.get('/controllers/getMessageById/:id', (req, res) => {
 /**
  * get 100 messages on click of any group
  */
-router.get('/controllers/getLimitedMessages/user/:userId/groups/:groupId/messages', (req, res) => {
+router.get('/messages/users/:userId/groups/:groupId', (req, res) => {
     messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.offset), (req.query.size), (result) => {
         res.send(result);
     });

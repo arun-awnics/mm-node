@@ -1,3 +1,6 @@
+import Dotenv from 'dotenv';
+
+const dotenv = Dotenv.config({ path: '.env.dev' });
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
@@ -17,7 +20,7 @@ router.post('/login', (req, res, next) => {
                 res.send(err);
             }
             // generate a signed web token with the contents of user object and return it in the response
-            const token = jwt.sign({ data: user }, 'your_jwt_secret');
+            const token = jwt.sign({ data: user }, process.env.JWT_SECRET);
             return res.json({ user, token });
         });
     })(req, res);

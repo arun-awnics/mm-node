@@ -83,7 +83,7 @@ router.delete('/deleteRolePrivilege/:id', function(req, res) {
  * API's for role
  */
 router.post('/createRole', function(req, res) {
-    var role = req.body;
+    const role = req.body;
     roleService.createRole(role, (result) => {
         res.send(result);
     });
