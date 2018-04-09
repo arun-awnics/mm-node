@@ -17,7 +17,7 @@ passport.use(new LocalStrategy({
     },
     function(email, password, done) {
         // call db to check if the user exists with tht correct password.
-        return userService.findUserByEmail(email, password, (user, err) => {
+        return userService.findUserByEmail(email, (user, err) => {
             if (err) { return done(err); }
             if (!user) {
                 return done(null, false, { message: 'Incorrect email' });

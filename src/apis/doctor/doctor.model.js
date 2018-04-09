@@ -8,7 +8,10 @@ module.exports = (sequelize, DataTypes) => {
         socketId: {
             type: DataTypes.STRING
         },
-        name: {
+        firstname: {
+            type: DataTypes.STRING
+        },
+        lastname: {
             type: DataTypes.STRING
         },
         picUrl: {
@@ -53,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
         activate: {
             type: DataTypes.DOUBLE
         },
-        privilege: {
+        role: {
             type: DataTypes.STRING
         },
         createdBy: {

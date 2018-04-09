@@ -9,7 +9,7 @@
     "main": "index.js",
     "scripts": {
         "clean": "rm -rf dist",
-        "compile": "npm run clean && babel src -d dist --copy-files",
+        "compile": "npm run clean && babel src --out-dir dist --copy-files",
         "serve": "npm run compile &&  node ./dist/index",
         "debug-run": "npm run compile && set DEBUG=*:* && nodemon ./dist/index",
         "start": "nodemon --watch src --exec npm run serve",

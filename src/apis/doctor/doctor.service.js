@@ -1,9 +1,11 @@
 import DoctorDao from './doctor.dao';
 import log from '../../config/log4js.config';
 import ConsultationDao from './consultation-schedule.dao';
+import UserService from '../user/user.service';
 
 var doctorDao = new DoctorDao();
 var consultationDao = new ConsultationDao();
+var userService = new UserService();
 
 class DoctorService {
     constructor() {}
@@ -13,6 +15,7 @@ class DoctorService {
      */
     create(doctor, callback) {
         return doctorDao.insert(doctor, (doctorInserted) => {
+            userService.register(doctor, (doctorCreated) => {});
             callback(doctorInserted);
         });
     }

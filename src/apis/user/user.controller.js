@@ -42,32 +42,6 @@ var userService = new UserService();
  *       updatedBy:
  *         type: string
  */
-/**
- * @swagger
- * /user/controllers/createUser:
- *   post:
- *     tags:
- *       - Users
- *     description: Creates a new user in MySql db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: user
- *         description: user object
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/User'
- *     responses:
- *       200:
- *         description: Successfully created in MySql db
- */
-router.post('/users', function(req, res) {
-    var user = req.body;
-    userService.register(user, (result) => {
-        res.send(result);
-    });
-});
 
 /**
  * @swagger
@@ -168,15 +142,6 @@ router.delete('/users/:id', function(req, res) {
     var id = req.params.id;
     userService.deleteRegisteredUser(id, (result) => {
         res.send('Number of user deleted: ' + result);
-    });
-});
-
-/**
- * updateActivate 
- */
-router.get('/users/:token', function(req, res) {
-    userService.activateUser(req.params.token, (result) => {
-        res.sendFile('./activate.html', { root: __dirname })
     });
 });
 

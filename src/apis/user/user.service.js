@@ -57,101 +57,101 @@ class UserService {
         });
         bcrypt.hash(user.password, 10, (err, hash) => {
             user.password = hash;
-        });
-        return userDao.insert(user, (userInserted) => {
-            callback(userInserted);
-            RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
-                var userRole = {
-                    userId: userInserted.id,
-                    roleId: role.id
-                };
-                roleService.createUserRole(userRole, (userRole) => {});
-            });
-            if (userInserted.role == 'patient') {
-                this.activationLink(userInserted.token);
-                var group = {
-                    name: 'MedHelp',
-                    url: `/medhelp/${userInserted.id}`,
-                    userId: userInserted.id,
-                    description: 'Med help',
-                    picture: 'https://d30y9cdsu7xlg0.cloudfront.net/png/363633-200.png',
-                    createdBy: 'docbot',
-                    updatedBy: 'docbot'
-                };
-                return groupDao.insert(group, (createdGroup) => {
-                    var groupUserMap = {
-                        userId: createdGroup.userId,
-                        groupId: createdGroup.id,
-                        createdBy: 'user',
-                        updatedBy: 'user'
+            return userDao.insert(user, (userInserted) => {
+                callback(userInserted);
+                RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
+                    var userRole = {
+                        userId: userInserted.id,
+                        roleId: role.id
                     };
-                    groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
-                    sequelize
-                        .query("select u.id, u.name, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
-                        .then((groupUserMaps) => {
-                            var uId;
-                            for (var i = 0; i < groupUserMaps.length; i++) {
-                                if (groupUserMaps[i].role == 'bot' | groupUserMaps[i].role == 'BOT') {
-                                    uId = groupUserMaps[i].id;
-                                    break;
-                                } else {
-                                    continue;
-                                }
-                            }
-                            var groupUserMapBot = {
-                                groupId: createdGroup.id,
-                                userId: uId,
-                                createdBy: 'bot',
-                                updatedBy: 'bot'
-                            }
-                            groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
-                            var msg = {
-                                receiverId: createdGroup.id,
-                                receiverType: 'group', // group or individual
-                                senderId: uId,
-                                text: 'Welcome to Mesomeds!! How can we help you?'
-                            }
-                            messageService.sendMessage(msg, (result) => {});
-                        });
+                    roleService.createUserRole(userRole, (userRole) => {});
                 });
-            } else {
-                return; //in case of bot
-            }
+                if (userInserted.role == 'patient' || userInserted.role == 'doctor') {
+                    this.activationLink(userInserted);
+                    var group = {
+                        name: 'MedHelp',
+                        url: `/medhelp/${userInserted.id}`,
+                        userId: userInserted.id,
+                        description: 'Med help',
+                        createdBy: 'docbot',
+                        updatedBy: 'docbot'
+                    };
+                    return groupDao.insert(group, (createdGroup) => {
+                        var groupUserMap = {
+                            userId: createdGroup.userId,
+                            groupId: createdGroup.id,
+                            createdBy: 'user',
+                            updatedBy: 'user'
+                        };
+                        groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
+                        sequelize
+                            .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .then((groupUserMaps) => {
+                                var uId;
+                                for (var i = 0; i < groupUserMaps.length; i++) {
+                                    if (groupUserMaps[i].role.toLowerCase() == 'bot') {
+                                        uId = groupUserMaps[i].id;
+                                        break;
+                                    } else {
+                                        continue;
+                                    }
+                                }
+                                var groupUserMapBot = {
+                                    groupId: createdGroup.id,
+                                    userId: uId,
+                                    createdBy: 'bot',
+                                    updatedBy: 'bot'
+                                }
+                                groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                var msg = {
+                                    receiverId: createdGroup.id,
+                                    receiverType: 'group', // group or individual
+                                    senderId: uId,
+                                    text: 'Welcome to Mesomeds!! How can we help you?',
+                                    createdTime: Date.now(),
+                                    updatedTime: Date.now()
+                                }
+                                messageService.sendMessage(msg, (result) => {});
+                            });
+                    });
+                } else {
+                    return; //in case of bot
+                }
+            });
         });
     }
 
     /**
      * activation link method
      */
-    activationLink(token) {
-        this.transporter.sendMail(this.emailFormat(token), function(error, info) {
+    activationLink(user) {
+        this.transporter.sendMail(this.emailFormat(user), function(error, info) {
             if (error) {
-                console.log('error occured: ' + error);
+                log.error('error occured: ' + error);
             }
-            console.log('Message sent');
+            log.info('Message sent');
         });
     }
 
     /**
      * email format
      */
-    emailFormat(token) {
+    emailFormat(user) {
         var userMailOptions;
         const userOutput = `
-            <h3>Greetings from Awnics!</h3>
+            <p>Hello ${user.firstname} ${user.lastname}</p>
             <p>Thank you for registering. Please click on the below link for activation.</p>
-            <a href="http://localhost:3000/user/controllers/updateActivate/${token}" target="_blank">
+            <a href="http://35.226.156.161:3000/activates/${user.token}" target="_blank">
                 Click here to confirm
             </a>
-            <p>Thanks and Regards,<br/>Awnics</p>
+            <p>Thanks and Regards,<br/>Mesomeds</p>
             `;
 
         // setup email data for user
         return userMailOptions = {
             from: 'test.arung@gmail.com',
-            to: 'nilu.kumari@awnics.com',
+            to: user.email,
             subject: 'Email activation link',
-            text: "hello",
             html: userOutput
         };
     }
@@ -162,7 +162,7 @@ class UserService {
     activateUser(token, callback) {
         userModel.user.find({ where: { token: token } }).then((resultFind) => {
             if (resultFind.token === token) {
-                userModel.user.update({ "activate": 1, "role": "patient" }, { where: { token: resultFind.token } });
+                userModel.user.update({ "activate": 1 }, { where: { token: resultFind.token } });
                 callback(resultFind);
             } else {
                 log.error('Error while updating the user ');
@@ -199,7 +199,7 @@ class UserService {
     /**
      * Find user by email for the login component
      */
-    findUserByEmail(email, password, callback) {
+    findUserByEmail(email, callback) {
         userModel.user.findOne({
             where: {
                 email: email
@@ -209,18 +209,6 @@ class UserService {
         }).catch(err => {
             log.error('Error while fetching user in user service: ', err);
         });
-    }
-
-    /**
-     * get all bots 
-     */
-    getAllBots(offset) {
-        userModel.user.findAll({
-            offset: offset,
-            where: {
-                name: Sequelize.literal(' name REGEXP "BOT*" ')
-            }
-        }).then((user) => {});
     }
 }
 

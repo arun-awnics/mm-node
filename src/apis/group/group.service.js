@@ -151,7 +151,7 @@ class GroupService {
                 }
             });
             sequelize
-                .query("select d.id, d.name from doctor d LEFT JOIN consultation_schedule cs on d.id=cs.doctorId where cs.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
+                .query("select d.id, d.firstname from doctor d LEFT JOIN consultation_schedule cs on d.id=cs.doctorId where cs.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
                 .then((allDoctors) => {
                     if (allDoctors.length > 0) { //for new group
                         var doctorMap = { //mapping doctor to consultation
